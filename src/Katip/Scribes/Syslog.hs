@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Katip.Scribes.Syslog
     ( mkSyslogScribe
     ) where
 
 
-import           Control.Exception (try, SomeException)
+import           Control.Exception (SomeException, try)
 import           Control.Monad
 import           Data.Aeson (encode)
 import           Data.ByteString.Lazy (ByteString)
@@ -25,12 +25,14 @@ mkSyslogScribe ns sev verb = do
                            , options      = [PID, CONS, ODELAY, NDELAY]
                            , priorityMask = NoMask -- Katip does the masking for us.
                            }
-  let scribe = Scribe $ \ i@Item{..} -> do
-                            when (permitItem sev i) $ do
-                              res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
-                              case res of
-                                Left (e :: SomeException) -> putStrLn (show e)
-                                Right () -> return ()
+  let scribe = Scribe (\i@Item{..} -> do
+                          when (permitItem sev i) $ do
+                            res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
+                            case res of
+                              Left (e :: SomeException) -> putStrLn (show e)
+                              Right () -> return ())
+                      (return ())
+
   return (scribe, return ())
 
 --------------------------------------------------------------------------------
