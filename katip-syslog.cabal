@@ -1,9 +1,9 @@
 name:                katip-syslog
 version:             0.1.0.0
--- synopsis:
-description:         Simple Katip Scribe which logs to syslog
+synopsis:            Syslog Katip Scribe
+description:         A simple Katip Scribe which logs to syslog
 homepage:            https://github.com/iconnect/katip-syslog#readme
-license:             MIT
+license:             BSD3
 license-file:        LICENSE
 author:              Alfredo Di Napoli
 maintainer:          alfredo@irisconnect.co.uk
@@ -11,7 +11,13 @@ copyright:           2017 IRIS Connect Engineering Team
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
+bug-reports:         http://github.com/iconnect/katip-syslog/issues
+
 cabal-version:       >=1.10
+
+Source-Repository head
+    type:               git
+    location:           https://github.com/iconnect/katip-syslog.git
 
 library
   hs-source-dirs:      src
