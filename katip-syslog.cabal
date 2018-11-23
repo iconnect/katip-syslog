@@ -23,8 +23,8 @@ library
   hs-source-dirs:      src
   exposed-modules:     Katip.Scribes.Syslog
   build-depends:       base  >= 4.7 && < 5
-                     , katip < 0.4.0.0
-                     , hsyslog >= 4 && < 5
+                     , katip < 0.8.0.0
+                     , hsyslog >= 4 && < 6
                      , text < 1.3.0.0
                      , string-conv < 0.2
                      , aeson < 2.0.0.0
