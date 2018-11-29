@@ -1,10 +1,11 @@
-resolver: lts-7.19
+resolver: lts-12.18
 
 packages:
 - '.'
 
 extra-deps:
-  - katip-0.3.1.4
+  - katip-0.7.0.0
+  - hsyslog-4
 
 # Override default flag values for local packages and extra-deps
 flags: {}
