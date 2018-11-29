@@ -1,5 +1,5 @@
 name:                katip-syslog
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Syslog Katip Scribe
 description:         A simple Katip Scribe which logs to syslog
 homepage:            https://github.com/iconnect/katip-syslog#readme
