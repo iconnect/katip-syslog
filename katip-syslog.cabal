@@ -6,8 +6,8 @@ homepage:            https://github.com/iconnect/katip-syslog#readme
 license:             BSD3
 license-file:        LICENSE
 author:              Alfredo Di Napoli
-maintainer:          alfredo@irisconnect.co.uk
-copyright:           2017 IRIS Connect Engineering Team
+maintainer:          chrisd@irisconnect.co.uk
+copyright:           2017-2019 IRIS Connect Engineering Team
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
