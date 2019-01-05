@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -25,6 +26,7 @@ mkSyslogScribe ns sev verb = do
                            , options      = [PID, CONS, ODELAY, NDELAY]
                            , priorityMask = NoMask -- Katip does the masking for us.
                            }
+#if (MIN_VERSION_katip(0,5,0))
   let scribe = Scribe (\i@Item{..} -> do
                           when (permitItem sev i) $ do
                             res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
@@ -32,7 +34,14 @@ mkSyslogScribe ns sev verb = do
                               Left (e :: SomeException) -> putStrLn (show e)
                               Right () -> return ())
                       (return ())
-
+#else
+  let scribe = Scribe $ \ i@Item{..} -> do
+                            when (permitItem sev i) $ do
+                              res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
+                              case res of
+                                Left (e :: SomeException) -> putStrLn (show e)
+                                Right () -> return ()
+#endif
   return (scribe, return ())
 
 --------------------------------------------------------------------------------
