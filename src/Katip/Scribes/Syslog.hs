@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
 module Katip.Scribes.Syslog
     ( mkSyslogScribe
     ) where
@@ -28,12 +29,21 @@ mkSyslogScribe ns sev verb = do
                            }
 #if (MIN_VERSION_katip(0,5,0))
   let scribe = Scribe (\i@Item{..} -> do
+#if (MIN_VERSION_katip(0,8,0))
+                          permit <- permitItem sev i
+                          when permit $ do
+#else
                           when (permitItem sev i) $ do
+#endif
                             res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
                             case res of
                               Left (e :: SomeException) -> putStrLn (show e)
                               Right () -> return ())
+#if (MIN_VERSION_katip(0,8,0))
+                      (return ()) (permitItem sev)
+#else
                       (return ())
+#endif
 #else
   let scribe = Scribe $ \ i@Item{..} -> do
                             when (permitItem sev i) $ do
