@@ -1,8 +1,10 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 module Katip.Scribes.Syslog
     ( mkSyslogScribe
     ) where
@@ -12,10 +14,25 @@ import           Control.Exception (SomeException, try)
 import           Control.Monad
 import           Data.Aeson (encode)
 import           Data.ByteString.Lazy (ByteString)
+import           Data.ByteString.Unsafe ( unsafeUseAsCStringLen )
+import qualified Data.ByteString as B
 import           Data.String.Conv
-import qualified Data.Text as T
+import           Foreign.C.String ( CStringLen, withCStringLen )
 import           Katip.Core
 import           System.Posix.Syslog
+import qualified Data.Text as T
+
+class LogMessage m where
+  toCStringLen :: m -> (CStringLen -> IO a) -> IO a
+
+instance LogMessage String where
+  toCStringLen = withCStringLen
+
+instance LogMessage B.ByteString where
+  toCStringLen = unsafeUseAsCStringLen
+
+write :: LogMessage a => Priority -> a -> IO ()
+write pri msg = toCStringLen msg (syslog Nothing pri)
 
 --------------------------------------------------------------------------------
 -- | A syslog `Scribe` which respects the main Katip's guidelines.
@@ -23,10 +40,6 @@ import           System.Posix.Syslog
 mkSyslogScribe :: Namespace -> Severity -> Verbosity -> IO (Scribe, IO ())
 mkSyslogScribe ns sev verb = do
   let identifier = T.intercalate "." (unNamespace ns)
-  let cfg = defaultConfig {  identifier   = toS identifier
-                           , options      = [PID, CONS, ODELAY, NDELAY]
-                           , priorityMask = NoMask -- Katip does the masking for us.
-                           }
 #if (MIN_VERSION_katip(0,5,0))
   let scribe = Scribe (\i@Item{..} -> do
 #if (MIN_VERSION_katip(0,8,0))
@@ -35,7 +48,7 @@ mkSyslogScribe ns sev verb = do
 #else
                           when (permitItem sev i) $ do
 #endif
-                            res <- try $ withSyslog cfg $ \syslog -> syslog USER (toSyslogPriority _itemSeverity) (toS $ formatItem verb i)
+                            res <- try $ withSyslog (toS identifier) [LogPID, Console, DelayedOpen, ImmediateOpen] User $ write (toSyslogPriority _itemSeverity) (B.toStrict $ formatItem verb i)
                             case res of
                               Left (e :: SomeException) -> putStrLn (show e)
                               Right () -> return ())
