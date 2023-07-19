@@ -1,10 +1,10 @@
-resolver: lts-17.5
+resolver: lts-18.28
 
 packages:
 - '.'
 
 extra-deps:
-- hsyslog-4
+- hsyslog-5.0.2
 
 # Override default flag values for local packages and extra-deps
 flags: {}
