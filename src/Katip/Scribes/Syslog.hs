@@ -16,6 +16,11 @@ import           Data.Aeson (encode)
 import           Data.ByteString.Lazy (ByteString)
 import           Data.ByteString.Unsafe ( unsafeUseAsCStringLen )
 import qualified Data.ByteString as B
+#if MIN_VERSION_bytestring(0,11,0)
+import           Data.ByteString (toStrict)
+#else
+import           Data.ByteString.Lazy (toStrict)
+#endif
 import           Data.String.Conv
 import           Foreign.C.String ( CStringLen, withCStringLen )
 import           Katip.Core
@@ -48,7 +53,7 @@ mkSyslogScribe ns sev verb = do
 #else
                           when (permitItem sev i) $ do
 #endif
-                            res <- try $ withSyslog (toS identifier) [LogPID, Console, DelayedOpen, ImmediateOpen] User $ write (toSyslogPriority _itemSeverity) (B.toStrict $ formatItem verb i)
+                            res <- try $ withSyslog (toS identifier) [LogPID, Console, DelayedOpen, ImmediateOpen] User $ write (toSyslogPriority _itemSeverity) (toStrict $ formatItem verb i)
                             case res of
                               Left (e :: SomeException) -> putStrLn (show e)
                               Right () -> return ())
